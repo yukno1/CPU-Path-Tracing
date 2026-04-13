@@ -3,37 +3,20 @@
 #include "thread_pool.hpp"
 #include "film.hpp"
 
-class SimpleTask : public Task
-{
-public:
-    void run() override
-    {
-        // std::cout <<  << std::endl;
-        std::printf("Hello World!\n");
-    }
-};
-
 int main()
 {
-    Film film(1920, 1080);
-    for (int i = 0; i < 100; i++)
-    {
-        for (int j = 0; j < 200; j++)
-        {
-            film.setPixels(j, i, {0.5, 0.7, 0.2});
-        }
-    }
-    auto now = std::chrono::high_resolution_clock::now();
-    film.save("test.ppm");
-    auto time = std::chrono::high_resolution_clock::now() - now;
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(time);
-    std::cout << "Time: " << ms.count() << std::endl;
-    // 现版本要10196 ms
-
     ThreadPool thread_pool{};
-    thread_pool.addTask(new SimpleTask());
-    thread_pool.addTask(new SimpleTask());
-    thread_pool.addTask(new SimpleTask());
-    thread_pool.addTask(new SimpleTask());
-    thread_pool.addTask(new SimpleTask());
+
+    Film film(1920, 1080);
+
+    thread_pool.parallelFor(200, 100, [&](size_t x, size_t y)
+                            { film.setPixel(x, y, {0.5, 0.7, 0.2}); });
+    thread_pool.wait();
+
+    // auto now = std::chrono::high_resolution_clock::now();
+    film.save("test.ppm");
+    // auto time = std::chrono::high_resolution_clock::now() - now;
+    // auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(time);
+    // std::cout << "Time: " << ms.count() << std::endl;
+    // 现版本要10196 ms，使用二进制只用200 ms
 }
