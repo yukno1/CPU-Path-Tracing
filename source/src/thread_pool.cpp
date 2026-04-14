@@ -6,6 +6,7 @@ void ThreadPool::WorkerThread(ThreadPool* master)
         Task* task = master->getTask();
         if (task != nullptr) {
             task->run();
+            master->pending_task_count--;
         }
         else {
             std::this_thread::yield();
@@ -15,7 +16,8 @@ void ThreadPool::WorkerThread(ThreadPool* master)
 
 ThreadPool::ThreadPool(size_t thread_count)
 {
-    alive = true;
+    alive              = true;
+    pending_task_count = 0;
     if (thread_count == 0) {
         thread_count = std::thread::hardware_concurrency();
     }
@@ -57,11 +59,12 @@ private:
 void ThreadPool::parallelFor(size_t width, size_t height,
                              const std::function<void(size_t, size_t)>& lambda)
 {
-    Guard guard(spin_lock);
+    // Guard guard(spin_lock);
 
     for (size_t x = 0; x < width; x++) {
         for (size_t y = 0; y < height; y++) {
-            tasks.push(new ParallelForTask(x, y, lambda));
+            // tasks.push(new ParallelForTask(x, y, lambda));
+            addTask(new ParallelForTask(x, y, lambda));
         }
     }
 }
@@ -71,7 +74,7 @@ void ThreadPool::parallelFor(size_t width, size_t height,
  */
 void ThreadPool::wait() const
 {
-    while (!tasks.empty()) {
+    while (pending_task_count > 0) {
         std::this_thread::yield();   // 把线程控制权交给os
     }
 }
@@ -79,6 +82,7 @@ void ThreadPool::wait() const
 void ThreadPool::addTask(Task* task)
 {
     Guard guard(spin_lock);
+    pending_task_count++;
     tasks.push(task);
 }
 

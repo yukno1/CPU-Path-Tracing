@@ -1,15 +1,16 @@
 #pragma once
 
 #include "ray.hpp"
-#include <optional>
+#include "shape.hpp"
 
-struct Sphere
+struct Sphere : public Shape
 {
+    Sphere(const glm::vec3& centre, float radius)
+        : centre(centre)
+        , radius(radius)
+    {}
     glm::vec3 centre;
-    float radius;
+    float     radius;
 
-    /**
-     * @return 有交点返回到球心的距离，没有返回Null
-     */
-    std::optional<float> intersect(const Ray &ray);
+    std::optional<HitInfo> intersect(const Ray& ray, float t_min, float t_max) const override;
 };

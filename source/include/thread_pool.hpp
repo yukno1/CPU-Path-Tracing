@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spin_lock.hpp"
+#include <atomic>
 #include <functional>
 #include <queue>
 #include <thread>
@@ -28,10 +29,11 @@ public:
     void  addTask(Task* task);
     Task* getTask();
 
-    std::atomic<bool> alive;
 
 private:
+    std::atomic<bool>        alive;
     std::vector<std::thread> threads;
+    std::atomic<int>         pending_task_count;
     std::queue<Task*>        tasks;
     SpinLock                 spin_lock{};
 };
