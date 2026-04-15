@@ -1,6 +1,5 @@
 #pragma once
 
-#include "glm/ext/vector_float3.hpp"
 #include <glm/glm.hpp>
 
 struct Ray
@@ -12,6 +11,8 @@ struct Ray
      * @param t 传播的距离
      */
     glm::vec3 hit(float t) const { return origin + t * direction; }
+
+    Ray objectFromWorld(const glm::mat4& object_from_world) const;
 };
 
 struct HitInfo
